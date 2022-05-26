@@ -1,4 +1,5 @@
-from ast import Str
+
+from typing import Optional
 from xmlrpc.client import Boolean
 from fastapi import FastAPI
 from fastapi.params import Body
@@ -10,6 +11,9 @@ app = FastAPI()
 class Post(BaseModel):
     title : str
     content : str
+    published : bool = True
+    
+    rating : Optional[int] = None
 
 @app.get("/")
 async def root():
@@ -35,7 +39,14 @@ def userpost(payLoad: dict = Body(...)):                 # Extract Data that we 
 def userpost(post_data : Post):                 # Extract Data that we send in Body section 
     print(post_data)
     print(post_data.title)
+    print(post_data.published)
+    print(post_data.rating)
+    
+    print(post_data.dict())  #converting data into dictionary
+
+
     
     
     # return {"Data : Post created"}
-    return {"data" : "NewPost"}
+    # return {"data" : "NewPost"}
+    return {"Data" : post_data}
