@@ -14,16 +14,20 @@ class Post(BaseModel):
     published : bool = True
     
     rating : Optional[int] = None
+    
+my_posts = [{"title":"title of post 1", "content":"content of post 1", "id":1}, 
+            {"title": "my first post", "content": "this post is about my dog", "id": 2}]
 
 @app.get("/")
 async def root():
     return {"message": "Welcome to my first API here in bangalore"}
 
-@app.get("/post")
+@app.get("/posts")
 def post():
-    return {"data: Here is your post"}
+    # return {"data: Here is your post"}
+    return {"data": my_posts}
 
-@app.post("/createpost")
+@app.post("/createpost")  # though not the best practice to create post routing
 def userpost(payLoad: dict = Body(...)):                 # Extract Data that we send in Body section 
     print(payLoad)
     # return {"Data : Post created"}
@@ -49,4 +53,8 @@ def userpost(post_data : Post):                 # Extract Data that we send in B
     
     # return {"Data : Post created"}
     # return {"data" : "NewPost"}
+    return {"Data" : post_data}
+
+@app.post("/posts")
+def userpost(post_data: Post):
     return {"Data" : post_data}
