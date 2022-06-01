@@ -1,7 +1,7 @@
 
 from typing import Optional
 from xmlrpc.client import Boolean
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 
 from random import randrange
@@ -28,6 +28,11 @@ async def root():
 def post():
     # return {"data: Here is your post"}
     return {"data": my_posts}
+
+def find_post(id):
+    for post in my_posts:
+        if post['id'] == id:
+            return post
 
 
 
@@ -62,10 +67,20 @@ def userpost(post_data: Post):
     post_dict = post_data.dict()
     post_dict['id'] = randrange(0,1000000) 
     my_posts.append(post_dict)
+    print(my_posts)
     return {"Data" : post_dict}
 
-@app.get("/posts{id}")
-def get_post(id):
-    print(id)
-    return {"Post_datail" : f"here is the post {id}"}
-    ...
+@app.get("/posts/{id}")
+def get_post(id: int, response: Response):
+    post = find_post(id)
+    
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with {id} was not found")
+        
+        # response.status_code = status.HTTP_404_NOT_FOUND
+        # return {"message": f"post with {id} was not found"}
+    print(post)
+    print(my_posts)
+    # return {"Post_datail" : f"here is the post {id}"}
+    return {"Post Details": post}
