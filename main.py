@@ -106,3 +106,16 @@ def delete_post(id: int):
     
     # return {"message": f"post with {id} was deleted"}
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@app.put("/posts/{id}")
+def update_post(id: int, post_data: Post):
+    post = find_post(id)
+    
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with {id} was not found")
+    
+    post.update(post_data.dict())
+    
+    # return {"message": f"post with {id} was updated"}
+    return {"Post Details": post}
