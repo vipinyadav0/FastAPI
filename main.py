@@ -38,7 +38,7 @@ def find_index_post(id):
     for i, post in enumerate(my_posts):
         if post['id'] == id:
             return i
-    ...
+
 
 
 
@@ -91,13 +91,18 @@ def get_post(id: int, response: Response):
     # return {"Post_datail" : f"here is the post {id}"}
     return {"Post Details": post}
 
-@app.delete("/posts/{id}")
-def delete_post():
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id: int):
     # find the index in tha array that has the required ID
     # delete that index i.e my_posts.pop(index)
     index =  find_index_post(id)
     
+    # print(my_posts)
+    
+    if index == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"post with {id} was not found")
+    
     my_posts.pop(index)
     
-    return {"message": f"post with {id} was deleted"}
-    ...
+    # return {"message": f"post with {id} was deleted"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
