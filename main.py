@@ -33,6 +33,12 @@ def find_post(id):
     for post in my_posts:
         if post['id'] == id:
             return post
+        
+def find_index_post(id):
+    for i, post in enumerate(my_posts):
+        if post['id'] == id:
+            return i
+    ...
 
 
 
@@ -62,7 +68,7 @@ def userpost(post_data : Post):                 # Extract Data that we send in B
 
 
 
-@app.post("/posts")
+@app.post("/posts", status_code=status.HTTP_201_CREATED) 
 def userpost(post_data: Post):
     post_dict = post_data.dict()
     post_dict['id'] = randrange(0,1000000) 
@@ -84,3 +90,14 @@ def get_post(id: int, response: Response):
     print(my_posts)
     # return {"Post_datail" : f"here is the post {id}"}
     return {"Post Details": post}
+
+@app.delete("/posts/{id}")
+def delete_post():
+    # find the index in tha array that has the required ID
+    # delete that index i.e my_posts.pop(index)
+    index =  find_index_post(id)
+    
+    my_posts.pop(index)
+    
+    return {"message": f"post with {id} was deleted"}
+    ...
