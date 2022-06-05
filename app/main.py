@@ -89,22 +89,23 @@ def userpost(post_data : Post):                 # Extract Data that we send in B
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED) 
 def create_post(post_data: Post):
+    
     #inserting via cursor
-    # cursor.execute("INSERT INTO posts (title, content, published) VALUES (%s, %s, %s)" , (post_data.title, post_data.content, post_data.published))
-    # new_post = cursor.fetchone()
-    # conn.commit()
-    # # print(posts)
-    # # return {"Data : Post created"}
-    # return {"Data" : new_post}
+    cursor.execute("INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING * " , (post_data.title, post_data.content, post_data.published))
+    new_post = cursor.fetchone()
+    conn.commit()
+    # print(posts)
+    # return {"Data : Post created"}
+    return {"Data" : new_post}
     
     
     # inserting via postman
     
-    post_dict = post_data.dict()
-    post_dict['id'] = randrange(0,1000000) 
-    my_posts.append(post_dict)
-    print(my_posts)
-    return {"Data" : post_dict}
+    # post_dict = post_data.dict()
+    # post_dict['id'] = randrange(0,1000000) 
+    # my_posts.append(post_dict)
+    # print(my_posts)
+    # return {"Data" : post_dict}
 
 @app.get("/posts/{id}")
 def get_post(id: int, response: Response):
