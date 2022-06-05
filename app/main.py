@@ -6,6 +6,8 @@ from fastapi.params import Body
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+import time
+
 from random import randrange
 
 from pydantic import BaseModel # to create schema
@@ -19,14 +21,18 @@ class Post(BaseModel):
     
     rating : Optional[int] = None
     
-try:
-    conn = psycopg2.connect(host= 'localhost' , database='FastAPI_db', user='postgres', password='Vipin@888',
-                            cursor_factory=RealDictCursor)
-    cursor = conn.cursor()
-    print("Connected to database")    
-except (Exception, psycopg2.Error) as error:
-    print("Error while connecting to PostgreSQL", error)
-    
+# Connecting to Databse
+while True:
+    try:
+        conn = psycopg2.connect(host= 'localhost' , dbname='FastAPI_db', user='postgres', password='Vipin@888',
+                                cursor_factory=RealDictCursor)
+        cursor = conn.cursor()
+        print("Connected to database")  
+        break  
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+        time.sleep(1)
+
 my_posts = [{"title":"title of post 1", "content":"content of post 1", "id":1}, 
             {"title": "my first post", "content": "this post is about my dog", "id": 2}]
 
@@ -36,8 +42,11 @@ async def root():
 
 @app.get("/posts")
 def post():
+    cursor.execute("SELECT * FROM posts ") 
+    posts = cursor.fetchall()
+    print(posts)
     # return {"data: Here is your post"}
-    return {"data": my_posts}
+    return {"data": posts} 
 
 def find_post(id):
     for post in my_posts:
@@ -79,7 +88,18 @@ def userpost(post_data : Post):                 # Extract Data that we send in B
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED) 
-def userpost(post_data: Post):
+def create_post(post_data: Post):
+    #inserting via cursor
+    # cursor.execute("INSERT INTO posts (title, content, published) VALUES (%s, %s, %s)" , (post_data.title, post_data.content, post_data.published))
+    # new_post = cursor.fetchone()
+    # conn.commit()
+    # # print(posts)
+    # # return {"Data : Post created"}
+    # return {"Data" : new_post}
+    
+    
+    # inserting via postman
+    
     post_dict = post_data.dict()
     post_dict['id'] = randrange(0,1000000) 
     my_posts.append(post_dict)
