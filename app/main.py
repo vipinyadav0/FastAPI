@@ -129,5 +129,3 @@ def update_post(id: int, post_data: Post):
     
     # return {"message": f"post with {id} was updated"}
     return {"Post Details": post}
-
-    
