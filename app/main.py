@@ -3,6 +3,8 @@ from typing import Optional
 from xmlrpc.client import Boolean
 from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 from random import randrange
 
@@ -16,6 +18,14 @@ class Post(BaseModel):
     published : bool = True
     
     rating : Optional[int] = None
+    
+try:
+    conn = psycopg2.connect(host= 'localhost' , database='FastAPI_db', user='postgres', password='Vipin@888',
+                            cursor_factory=RealDictCursor)
+    cursor = conn.cursor()
+    print("Connected to database")    
+except (Exception, psycopg2.Error) as error:
+    print("Error while connecting to PostgreSQL", error)
     
 my_posts = [{"title":"title of post 1", "content":"content of post 1", "id":1}, 
             {"title": "my first post", "content": "this post is about my dog", "id": 2}]
@@ -119,3 +129,5 @@ def update_post(id: int, post_data: Post):
     
     # return {"message": f"post with {id} was updated"}
     return {"Post Details": post}
+
+    
