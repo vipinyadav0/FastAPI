@@ -137,16 +137,15 @@ def delete_post(id: int):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @app.put("/posts/{id}")
-def update_post(id: int, post_data: Post):
-    post = find_post(id)
+def update_post(id: int, post: Post):
+    cursor.execute("UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING * ", (post.title, post.content, post.published, str(id)))
+    updated_post = cursor.fetchone()
+    conn.commit()
     
-    if not post:
+    if not updated_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with {id} was not found")
-    
-    post.update(post_data.dict())
-    
     # return {"message": f"post with {id} was updated"}
-    return {"Post Details": post}
+    return {"Post Details": updated_post}
 
 #this is modified in database branch
