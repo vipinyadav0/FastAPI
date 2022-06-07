@@ -1,4 +1,5 @@
 
+from turtle import title
 from typing import Optional
 from xmlrpc.client import Boolean
 from fastapi import FastAPI, Response, status, HTTPException, Depends
@@ -23,8 +24,7 @@ class Post(BaseModel):
     title : str
     content : str
     published : bool = True
-    
-    rating : Optional[int] = None
+    # rating : Optional[int] = None
     
 # Connecting to Databse
 while True:
@@ -48,7 +48,7 @@ async def root():
 @app.get("/sqlalchemy")
 def test_posts(db: Session = Depends(get_db)):
     
-    posts = db.query(models.Post).all()
+    posts = db.query(models.Posts).all()
     # return {"status": "success", "data": {"posts": [post.to_dict() for post in posts]}}
     return {"data": posts}
 
@@ -56,7 +56,7 @@ def test_posts(db: Session = Depends(get_db)):
 def post(db: Session = Depends(get_db)):
     # cursor.execute("SELECT * FROM dbposts") 
     # posts = cursor.fetchall()
-    posts = db.query(models.Post).all()
+    posts = db.query(models.Posts).all()
     print(posts)
     # return {"data: Here is your post"}
     return {"data": posts} 
@@ -86,30 +86,43 @@ def userpost(payLoad: dict = Body(...)):                 # Extract Data that we 
 # 1. Title i.e string (str) , 2. Content i.e string(str)
 # Instead of extracting data i.e Payload
 
-@app.post("/makepost")
-def userpost(post_data : Post):                 # Extract Data that we send in Body section 
-    print(post_data)
-    print(post_data.title)
-    print(post_data.published)
-    print(post_data.rating)
+# @app.post("/makepost")
+# def userpost(post_data : Post):                 # Extract Data that we send in Body section 
+#     print(post_data)
+#     print(post_data.title)
+#     print(post_data.published)
+#     print(post_data.rating)
     
-    print(post_data.dict())  #converting data into dictionary
-    # return {"Data : Post created"}
-    # return {"data" : "NewPost"}
-    return {"Data" : post_data}
+#     print(post_data.dict())  #converting data into dictionary
+#     # return {"Data : Post created"}
+#     # return {"data" : "NewPost"}
+#     return {"Data" : post_data}
 
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED) 
-def create_post(post_data: Post):
+def create_post(post_data: Post, db: Session = Depends(get_db)):
+    
+    # new_post = models.Post(title = post_data.title, content = post_data.content, published = post_data.published,)
+                                                        # the above method is inefficient as if we have more 
+                                                        # than one column in the table sa 50% of the time we will have to write the same code again and again
+                                                        # so we use the below method i.e **post_data.dict() to convert data into dictionary and unpacking it.
+    # print(post_data.dict())
+    new_post = models.Posts(**post_data.dict()) # this method is efficient as it will only extract the data we need and not the rest of the data
+    
+    db.add(new_post) # add new post to database
+    db.commit() # to commit the changes to the database   
+    db.refresh(new_post) # to refresh the data in the database
+    
+    return {"data": new_post}
+    
     
     #inserting via cursor
-    cursor.execute("INSERT INTO dbposts (title, content, published) VALUES (%s, %s, %s) RETURNING * " , (post_data.title, post_data.content, post_data.published))
-    new_post = cursor.fetchone()
-    conn.commit()
+    # cursor.execute("INSERT INTO dbposts (title, content, published) VALUES (%s, %s, %s) RETURNING * " , (post_data.title, post_data.content, post_data.published))
+    # new_post = cursor.fetchone()
+    # conn.commit()
     # print(posts)
     # return {"Data : Post created"}
-    return {"Data" : new_post}
     
     
     # inserting via postman
@@ -119,12 +132,15 @@ def create_post(post_data: Post):
     # my_posts.append(post_dict)
     # print(my_posts)
     # return {"Data" : post_dict}
+    
+    
 
 @app.get("/posts/{id}")
-def get_post(id: int, response: Response):
+def get_post(id: int, db: Session = Depends(get_db)):
+    post = db.query(models.Posts).filter(models.Posts.id == id).first()
     
-    cursor.execute("SELECT * FROM dbposts WHERE id = %s", (id,))
-    post = cursor.fetchone()
+    # cursor.execute("SELECT * FROM dbposts WHERE id = %s", (id,))
+    # post = cursor.fetchone()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with {id} was not found")
