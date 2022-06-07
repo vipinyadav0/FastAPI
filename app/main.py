@@ -11,7 +11,7 @@ from pydantic import BaseModel # to create schema
 
 from sqlalchemy.orm import Session
 
-from . import models
+from . import models #import models to make queries to it 
 from .database import engine, get_db
 
 models.Base.metadata.create_all(bind =engine)
@@ -47,13 +47,16 @@ async def root():
 
 @app.get("/sqlalchemy")
 def test_posts(db: Session = Depends(get_db)):
+    
     posts = db.query(models.Post).all()
-    return {"status": "success", "data": {"posts": [post.to_dict() for post in posts]}}
+    # return {"status": "success", "data": {"posts": [post.to_dict() for post in posts]}}
+    return {"data": posts}
 
 @app.get("/posts")
-def post():
-    cursor.execute("SELECT * FROM posts ") 
-    posts = cursor.fetchall()
+def post(db: Session = Depends(get_db)):
+    # cursor.execute("SELECT * FROM dbposts") 
+    # posts = cursor.fetchall()
+    posts = db.query(models.Post).all()
     print(posts)
     # return {"data: Here is your post"}
     return {"data": posts} 
@@ -101,7 +104,7 @@ def userpost(post_data : Post):                 # Extract Data that we send in B
 def create_post(post_data: Post):
     
     #inserting via cursor
-    cursor.execute("INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING * " , (post_data.title, post_data.content, post_data.published))
+    cursor.execute("INSERT INTO dbposts (title, content, published) VALUES (%s, %s, %s) RETURNING * " , (post_data.title, post_data.content, post_data.published))
     new_post = cursor.fetchone()
     conn.commit()
     # print(posts)
@@ -120,7 +123,7 @@ def create_post(post_data: Post):
 @app.get("/posts/{id}")
 def get_post(id: int, response: Response):
     
-    cursor.execute("SELECT * FROM posts WHERE id = %s", (id,))
+    cursor.execute("SELECT * FROM dbposts WHERE id = %s", (id,))
     post = cursor.fetchone()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -134,7 +137,7 @@ def get_post(id: int, response: Response):
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
     
-    cursor.execute("DELETE FROM posts WHERE id = %s returning *", (id,))
+    cursor.execute("DELETE FROM dbposts WHERE id = %s returning *", (id,))
     
     deleted_post = cursor.fetchone()
     conn.commit()
@@ -148,7 +151,7 @@ def delete_post(id: int):
 
 @app.put("/posts/{id}")
 def update_post(id: int, post: Post):
-    cursor.execute("UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING * ", (post.title, post.content, post.published, str(id)))
+    cursor.execute("UPDATE dbposts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING * ", (post.title, post.content, post.published, str(id)))
     updated_post = cursor.fetchone()
     conn.commit()
     
