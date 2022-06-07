@@ -1,18 +1,23 @@
 
 from typing import Optional
 from xmlrpc.client import Boolean
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
 import psycopg2
 from psycopg2.extras import RealDictCursor
-
 import time
-
 from random import randrange
-
 from pydantic import BaseModel # to create schema
 
+from sqlalchemy.orm import Session
+
+from . import models
+from .database import engine, get_db
+
+models.Base.metadata.create_all(bind =engine)
+
 app = FastAPI()
+
 
 class Post(BaseModel):
     title : str
@@ -24,7 +29,7 @@ class Post(BaseModel):
 # Connecting to Databse
 while True:
     try:
-        conn = psycopg2.connect(host= 'localhost' , dbname='FastAPI_db', user='postgres', password='Vipin@888',
+        conn = psycopg2.connect(host= 'localhost' , dbname='FastAPI_db', user='postgres', password='postgres123',
                                 cursor_factory=RealDictCursor)
         cursor = conn.cursor()
         print("Connected to database")  
@@ -39,6 +44,11 @@ my_posts = [{"title":"title of post 1", "content":"content of post 1", "id":1},
 @app.get("/")
 async def root():
     return {"message": "Welcome to my first API here in bangalore"}
+
+@app.get("/sqlalchemy")
+def test_posts(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
+    return {"status": "success", "data": {"posts": [post.to_dict() for post in posts]}}
 
 @app.get("/posts")
 def post():
