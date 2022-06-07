@@ -1,4 +1,5 @@
 
+from multiprocessing import synchronize
 from turtle import title
 from typing import Optional
 from xmlrpc.client import Boolean
@@ -151,16 +152,22 @@ def get_post(id: int, db: Session = Depends(get_db)):
     return {"Post Details": post}
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int):
+def delete_post(id: int, db: Session = Depends(get_db)):
     
-    cursor.execute("DELETE FROM dbposts WHERE id = %s returning *", (id,))
-    
-    deleted_post = cursor.fetchone()
-    conn.commit()
+    deleted_post = db.query(models.Posts).filter(models.Posts.id == id)
     
     
-    if deleted_post == None:
+    # cursor.execute("DELETE FROM dbposts WHERE id = %s returning *", (id,))
+    
+    # deleted_post = cursor.fetchone()
+    # conn.commit()
+    
+    
+    if deleted_post.first() == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"post with {id} was not found")
+    
+    deleted_post.delete(synchronize_session=False) 
+    db.commit()
     
     # return {"message": f"post with {id} was deleted"}
     return Response(status_code=status.HTTP_204_NO_CONTENT)
