@@ -15,4 +15,3 @@ class Posts(Base):
     published = Column(Boolean, server_default="TRUE", nullable = False) 
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'), nullable = False)
     
-#this is under db_schemas
