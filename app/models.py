@@ -1,6 +1,3 @@
-from email.policy import default
-from http import server
-from sqlite3 import Timestamp
 from .database import Base, engine, SessionLocal
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.sql.sqltypes import TIMESTAMP
@@ -9,7 +6,7 @@ from sqlalchemy.sql.expression import text
 
 
 
-class Post(Base):
+class Posts(Base):
     __tablename__ = "dbposts"
     
     id = Column(Integer, primary_key=True, nullable = False)
